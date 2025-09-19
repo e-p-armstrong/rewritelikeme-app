@@ -12,6 +12,7 @@ import { Toaster } from 'react-hot-toast';
 import HowTo from './pages/HowTo';
 // Tabs for Voices/Bases/ModelSearch will render inside Dashboard
 import OnboardingController from './components/OnboardingController';
+import About from './pages/About';
 
 function App() {
 
@@ -26,12 +27,10 @@ function App() {
               <Route path="/" element={<Home />} />
               {/* Onboarding */}
               <Route path="/how-to" element={<HowTo />} />
+              <Route path="/about" element={<About />} />
               
-              {/* Protected Routes */}
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/dashboard/convert" element={<Convert />} />
-                {/* <Route path="/dashboard/account" element={<Account />} /> */}
-                {/* they do not make payments within the app, rather we direct them to the site? for teh rest of the experience? */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/convert" element={<Convert />} />
               
               <Route path="*" element={<NotFound />} />
               {/* 404 Catch-all route */}

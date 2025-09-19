@@ -56,9 +56,6 @@ function createWindow() {
     win.loadFile(indexPath).catch(err => {
       log.error('[WINDOW] Failed to load file:', err);
     });
-    
-    // Open dev tools in production temporarily for debugging
-    win.webContents.openDevTools({ mode: 'detach' });
   }
 
   // Ensure external links open in the user's default browser instead of inside Electron
@@ -963,7 +960,7 @@ ipcMain.handle('activation:activate', async (_evt, sel) => {
     const args = ['--model', base.gguf, '--host', host, '--port', String(port), '--chat-template', 'mistral-v1'];
     if (voice?.adapter) args.push('--lora', voice.adapter);
     console.log('[ACT] spawn', bin, args.join(' '));
-    const proc = spawn(bin, args, { stdio: 'pipe' });
+    const proc = spawn(bin, args, { stdio: 'pipe', windowsHide: true });
     proc.on('exit', (code, sig) => {
       console.log('[ACT] llama-server exited', { code, sig });
       activeServer = { proc: null, port: null, host, url: null };

@@ -108,6 +108,10 @@ mongobackup-*
 .specstory
 keycommands*
 *.md
+!README.md
+
+# Llama.cpp binaries (downloaded at build time)
+llama-binaries/
 
 
 # Logs
