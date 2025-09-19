@@ -1,0 +1,113 @@
+{
+  "name": "rewritelikeme-app",
+  "productName": "RewriteLikeMe",
+  "description": "Local AI writing style converter",
+  "author": "RewriteLikeMe",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "node ./node_modules/vite/bin/vite.js",
+    "dev:electron": "wait-on tcp:5173 && electron ./electron/main.cjs",
+    "electron:dev": "concurrently -k \"npm:dev\" \"npm:dev:electron\"",
+    "build": "node ./node_modules/vite/bin/vite.js build",
+    "build:strict": "tsc -b && node ./node_modules/vite/bin/vite.js build",
+    "electron:build": "ELECTRON=true node ./node_modules/vite/bin/vite.js build && electron-builder --dir",
+    "lint": "eslint .",
+    "preview": "node ./node_modules/vite/bin/vite.js preview"
+  },
+  "dependencies": {
+    "@stripe/react-stripe-js": "^2.7.1",
+    "@stripe/stripe-js": "^3.4.1",
+    "@tiptap/react": "^3.0.7",
+    "@tiptap/starter-kit": "^3.0.7",
+    "@types/marked": "^5.0.2",
+    "@types/turndown": "^5.0.5",
+    "axios": "^1.7.2",
+    "electron-log": "^5.4.3",
+    "marked": "^16.1.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.4.1",
+    "react-icons": "^5.2.1",
+    "react-router-dom": "^7.7.0",
+    "stripe": "^18.3.0",
+    "turndown": "^7.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
+    "electron": "^31.3.1",
+    "electron-builder": "^24.13.3",
+    "eslint": "^9.30.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.35.1",
+    "vite": "^7.0.4",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.rewritelikeme.app",
+    "productName": "RewriteLikeMe",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "llama-binaries",
+        "to": "llama-binaries",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "mac": {
+      "icon": "public/rwlm-logo.png",
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "icon": "public/rwlm-logo.png",
+      "target": {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    },
+    "linux": {
+      "icon": "public/rwlm-logo.png",
+      "category": "Office",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}

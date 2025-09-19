@@ -1,0 +1,106 @@
+/* Toolbar button styling - old styles that are no longer used */
+.tiptap-editor-menu button.is-active {
+  background-color: #e0e0e0;
+}
+
+.tiptap-editor-menu button {
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.tiptap-editor-menu button:hover {
+  background-color: #f0f0f0;
+}
+
+/* Editor content styling */
+.ProseMirror {
+  outline: none;
+  padding: 1rem;
+}
+
+/* Heading styles */
+.ProseMirror h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 1rem 0 0.5rem 0;
+  line-height: 1.2;
+  color: #1a1a1a;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0.75rem 0 0.5rem 0;
+  line-height: 1.3;
+  color: #2a2a2a;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 0.5rem 0 0.25rem 0;
+  line-height: 1.4;
+  color: #3a3a3a;
+}
+
+/* Paragraph styles */
+.ProseMirror p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+/* List styles */
+.ProseMirror ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+}
+
+.ProseMirror ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  list-style-type: decimal;
+}
+
+.ProseMirror li {
+  margin: 0.25rem 0;
+  line-height: 1.5;
+  display: list-item;
+}
+
+/* Code styles */
+.ProseMirror code {
+  background-color: #f4f4f4;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+/* Strong and em styles */
+.ProseMirror strong {
+  font-weight: bold;
+}
+
+.ProseMirror em {
+  font-style: italic;
+}
+
+/* Strikethrough styles */
+.ProseMirror s {
+  text-decoration: line-through;
+}
+
+/* Focus styles */
+.ProseMirror:focus {
+  outline: none;
+}
+
+/* Placeholder styles */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}

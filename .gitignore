@@ -1,0 +1,137 @@
+.aider*
+.env*
+.claude*
+.cursor*
+.specstory/**
+# Dependencies
+**/node_modules/
+**/npm-debug.log
+**/yarn-debug.log
+**/yarn-error.log
+**/# Environment variables
+**/.env
+**/.env.local
+**/.env.*.local
+**/# Build output
+**/dist/
+**/build/
+**/# IDE and editor files
+**/.idea/
+**/.vscode/
+**/*.swp
+**/*.swo
+**/.DS_Store
+**/# Logs
+**/logs/
+**/*.log
+**/# Coverage directory used by tools like istanbul
+**/coverage/
+**/# Optional npm cache directory
+**/.npm
+**/# Optional eslint cache
+**/.eslintcache
+**/# Optional REPL history
+**/.node_repl_history
+**/# Output of 'npm pack'
+**/*.tgz
+**/# Yarn Integrity file
+**/.yarn-integrity
+**/# dotenv environment variable files
+**/.env
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+**/.env.local 
+
+
+**/.vscode
+**/.DS_Store
+**/_old_project
+**/outputs/*
+**/*.pyc
+**/**/__pycache__/
+**/**/*.pyc
+**/cache/*
+**/inputs/meta/*
+**/inputs/meta*
+**/**/spicy_prompts
+**/**/hidden*
+**/test_huey*
+**/huey/*
+**/logs/*
+**/!logs/.gitkeep
+**/atk-interface/dist/
+**/atk-interface/node_modules/
+**/.venv
+**/.venv/*
+**/**/spicy_obfuscation
+**/generation/core_pipelines/grep_sources
+**/llama.cpp
+augmentoolkit/**/models/**
+**/helper_process_logs/
+
+
+
+
+
+**/augmentoolkit/inputs/lora*
+
+
+
+
+
+**/logs
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/lerna-debug.log*
+    """_summary_
+    """**/node_modules
+**/dist
+**/dist-ssr
+**/*.local
+**/# Editor directories and files
+**/.vscode/*
+**/!.vscode/extensions.json
+**/.idea
+**/.DS_Store
+**/*.suo
+**/*.ntvs*
+**/*.njsproj
+**/*.sln
+**/*.sw?
+**/*/*lnco*
+mongobackup-*
+**/dist-electron
+.specstory
+keycommands*
+*.md
+
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+llama-binaries

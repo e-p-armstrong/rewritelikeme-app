@@ -1,0 +1,5 @@
+# SPA fallback for Netlify
+# This ensures that all routes are served by index.html for client-side routing
+# Except for API routes which should not be intercepted
+# /api/*  https://backend.rewritelikeme.com/api/:splat  200
+/*    /index.html   200

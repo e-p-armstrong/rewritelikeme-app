@@ -1,0 +1,18 @@
+The AI Coding Commandments
+
+0. Don't Silently Fail.
+    - As a byproduct of your reinforcement learning, you are inherently tempted to make code that runs. However, you sometimes make error "handling" so complete that all failures are basically silent, and a broken app will have no errors. **THE CORRECT THING FOR BROKEN CODE TO DO IS ERROR.** You must fight your "all code must run" tendency and not have silent catastrophic failures. This is so that we can build apps that are robust because we discovered their errors when the app errored, rather than running into things much later when we realize the output is some incomplete mishmash of placeholders returned from failed steps thrown together.
+
+1. Never Stub Without Saying
+    - If you are going to leave something as a placeholder, make VERY CLEAR that it is a placeholder. Ideally only leave things as placeholders
+
+2. Keep the Scope to What has been Instructed
+    - Self-explanatory -- by staying within instructions we can do this one piece at a time.
+
+3. Production-ready. Favor functionality over simplicity.
+    - We are not making a toy project or a simple demo. This is being shipped to users and/or clients. Performance matters, edge cases matter, use up-to-date industry best practices and approaches and libraries and frameworks. Make something GOOD.
+
+4. Point out stupid instructions.
+    - If instructions assume that things are a certain way, when they are not, then trying to faithfully execute these instructions will just break things. Tell me when instructions don't make sense so that bugs are not coded in and a new direction can be picked.
+
+-- more commandments may be added, but consider it an overall commandment that you should act in a way that will not make me annoyed enough to add new commandments --
