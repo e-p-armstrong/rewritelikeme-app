@@ -13,8 +13,8 @@
     "electron:dev": "node ./node_modules/concurrently/dist/bin/concurrently.js -k \"npm:dev\" \"npm:dev:electron\"",
     "build": "node ./node_modules/vite/bin/vite.js build",
     "build:strict": "tsc -b && node ./node_modules/vite/bin/vite.js build",
-    "electron:build": "ELECTRON=true node ./node_modules/vite/bin/vite.js build && node ./node_modules/electron-builder/cli.js --dir",
-    "electron:build:full": "ELECTRON=true node ./node_modules/vite/bin/vite.js build && node ./node_modules/electron-builder/cli.js",
+    "electron:build": "cross-env ELECTRON=true node ./node_modules/vite/bin/vite.js build && node ./node_modules/electron-builder/cli.js --dir",
+    "electron:build:full": "cross-env ELECTRON=true node ./node_modules/vite/bin/vite.js build && node ./node_modules/electron-builder/cli.js",
     "lint": "eslint .",
     "preview": "node ./node_modules/vite/bin/vite.js preview"
   },
@@ -43,6 +43,7 @@
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.21",
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "electron": "^31.3.1",
     "electron-builder": "^24.13.3",
     "eslint": "^9.30.1",
