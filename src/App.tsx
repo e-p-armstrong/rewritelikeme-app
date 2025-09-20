@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -15,9 +15,10 @@ import OnboardingController from './components/OnboardingController';
 import About from './pages/About';
 
 function App() {
-
+  const isElectron = typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron');
+  const RouterComponent = isElectron ? HashRouter : BrowserRouter;
   return (
-    <Router>
+    <RouterComponent>
       <div className="min-h-screen bg-floral-white flex flex-col">
             <Navbar />
             <Toaster />
@@ -38,7 +39,7 @@ function App() {
             </main>
             <Footer />
           </div>
-    </Router>
+    </RouterComponent>
   );
 }
 
