@@ -115,6 +115,7 @@ const llamaBinariesPath = path.join(rootPath, 'llama-binaries');
 const logsPath = path.join(rootPath, 'logs');
 const downloadsPath = path.join(rootPath, 'downloads', 'tmp');
 const onboardingStatePath = path.join(rootPath, 'onboarding.json');
+const settingsPath = path.join(rootPath, 'settings.json');
 
 function ensureDir(p) {
   fs.mkdirSync(p, { recursive: true });
@@ -137,6 +138,25 @@ async function writeOnboardingState(partial) {
   const current = readOnboardingState();
   const next = { ...current, ...partial };
   await fs.promises.writeFile(onboardingStatePath, JSON.stringify(next, null, 2), 'utf-8');
+  return next;
+}
+
+// Settings persistence (only user preferences, not paths)
+function readSettings() {
+  try {
+    if (fs.existsSync(settingsPath)) {
+      const raw = fs.readFileSync(settingsPath, 'utf-8');
+      const data = JSON.parse(raw);
+      if (data && typeof data === 'object') return data;
+    }
+  } catch {}
+  return {};
+}
+
+async function writeSettings(partial) {
+  const current = readSettings();
+  const next = { ...current, ...partial };
+  await fs.promises.writeFile(settingsPath, JSON.stringify(next, null, 2), 'utf-8');
   return next;
 }
 
@@ -201,11 +221,39 @@ async function getRepoDetails(repo) {
 }
 
 // IPC endpoints
-ipcMain.handle('settings:get', async () => ({
-  rootPath, modelsPath, basesPath, voicesPath, llamaBinariesPath, logsPath, downloadsPath,
-  llamaServer: { host: '127.0.0.1', portStart: 33333 }, offlineMode: true, allowAutoUpdate: false,
-}));
-ipcMain.handle('settings:set', async (_evt, partial) => ({ ...partial }));
+function buildSettingsResponse() {
+  const prefs = readSettings();
+  const backendPreference = typeof prefs.backendPreference === 'string' ? prefs.backendPreference : 'auto';
+  const nGpuLayers = typeof prefs.nGpuLayers === 'number' ? prefs.nGpuLayers : 0;
+  return {
+    rootPath, modelsPath, basesPath, voicesPath, llamaBinariesPath, logsPath, downloadsPath,
+    llamaServer: { host: '127.0.0.1', portStart: 33333, nGpuLayers },
+    offlineMode: true, allowAutoUpdate: false,
+    backendPreference,
+  };
+}
+
+ipcMain.handle('settings:get', async () => {
+  const prefs = readSettings();
+  const backendPreference = typeof prefs.backendPreference === 'string' ? prefs.backendPreference : 'auto';
+  const nGpuLayers = typeof prefs.nGpuLayers === 'number' ? prefs.nGpuLayers : 0;
+  return buildSettingsResponse();
+});
+ipcMain.handle('settings:set', async (_evt, partial) => {
+  const next = {};
+  try {
+    if (partial && typeof partial === 'object') {
+      if (typeof partial.backendPreference === 'string') next.backendPreference = partial.backendPreference;
+      const ls = partial.llamaServer;
+      if (ls && typeof ls === 'object' && typeof ls.nGpuLayers === 'number') {
+        next.nGpuLayers = ls.nGpuLayers;
+      }
+    }
+  } catch {}
+  await writeSettings(next);
+  // Return the updated merged settings
+  return buildSettingsResponse();
+});
 ipcMain.handle('system:diskSpace', async () => ({ freeBytes: 10n * 1024n * 1024n * 1024n, totalBytes: 100n * 1024n * 1024n * 1024n }));
 
 // Onboarding persistence
@@ -802,31 +850,56 @@ function platformBinPath() {
     ? path.join(process.resourcesPath, 'llama-binaries')
     : path.join(__dirname, '..', 'llama-binaries');
 
-  const platformDir = process.platform === 'darwin' ? darwinArch
-    : isWin ? 'win-x64' : 'linux-x64';
+  const prefs = readSettings();
+  const backendPreference = typeof prefs.backendPreference === 'string' ? prefs.backendPreference : 'auto';
 
-  const candidates = [
-    // Primary platform-specific path
-    path.join(binariesBasePath, platformDir, bin),
-  ];
+  const candidates = [];
 
-  // On macOS, try both arch folders to be robust (Rosetta or mismatched downloads)
   if (process.platform === 'darwin') {
+    // macOS: use existing CPU build selection by arch
+    const platformDir = darwinArch;
+    candidates.push(path.join(binariesBasePath, platformDir, bin));
     const otherArch = darwinArch === 'mac-arm64' ? 'mac-x64' : 'mac-arm64';
     candidates.push(path.join(binariesBasePath, otherArch, bin));
+  } else if (process.platform === 'win32') {
+    // Windows: prefer requested backend
+    if (backendPreference === 'vulkan' || backendPreference === 'auto') {
+      candidates.push(path.join(binariesBasePath, 'win-x64-vulkan', bin));
+    }
+    if (backendPreference === 'cpu' || backendPreference === 'auto') {
+      candidates.push(path.join(binariesBasePath, 'win-x64', bin));
+    }
+  } else {
+    // Linux
+    if (backendPreference === 'vulkan' || backendPreference === 'auto') {
+      candidates.push(path.join(binariesBasePath, 'linux-x64-vulkan', bin));
+    }
+    if (backendPreference === 'cpu' || backendPreference === 'auto') {
+      candidates.push(path.join(binariesBasePath, 'linux-x64', bin));
+    }
   }
 
-  // Fallbacks for other platforms
-  if (!isWin) candidates.push(path.join(binariesBasePath, 'linux-x64', bin));
-  if (!isWin) candidates.push(path.join(binariesBasePath, 'mac-x64', bin));
-  if (!isWin) candidates.push(path.join(binariesBasePath, 'mac-arm64', bin));
-  if (isWin) candidates.push(path.join(binariesBasePath, 'win-x64', bin));
+  // Generic fallbacks
+  if (process.platform !== 'win32') {
+    candidates.push(path.join(binariesBasePath, 'linux-x64', bin));
+    candidates.push(path.join(binariesBasePath, 'mac-x64', bin));
+    candidates.push(path.join(binariesBasePath, 'mac-arm64', bin));
+  } else {
+    candidates.push(path.join(binariesBasePath, 'win-x64', bin));
+  }
 
   // Also check the legacy llamaBinariesPath for backward compatibility
-  const legacyCandidates = [
-    path.join(llamaBinariesPath, platformDir, bin),
-    path.join(llamaBinariesPath, bin),
-  ];
+  const legacyCandidates = [];
+  if (process.platform === 'darwin') {
+    legacyCandidates.push(path.join(llamaBinariesPath, darwinArch, bin));
+    const otherArch = darwinArch === 'mac-arm64' ? 'mac-x64' : 'mac-arm64';
+    legacyCandidates.push(path.join(llamaBinariesPath, otherArch, bin));
+  } else if (process.platform === 'win32') {
+    legacyCandidates.push(path.join(llamaBinariesPath, 'win-x64', bin));
+  } else {
+    legacyCandidates.push(path.join(llamaBinariesPath, 'linux-x64', bin));
+  }
+  legacyCandidates.push(path.join(llamaBinariesPath, bin));
   candidates.push(...legacyCandidates);
 
   for (const p of candidates) { 
@@ -837,7 +910,7 @@ function platformBinPath() {
   }
 
   // Return primary platform-specific path as the best hint
-  const primaryPath = path.join(binariesBasePath, platformDir, bin);
+  const primaryPath = candidates[0] || path.join(binariesBasePath, isWin ? 'win-x64' : (process.platform === 'darwin' ? darwinArch : 'linux-x64'), bin);
   console.log(`[PLATFORM] No llama-server found, returning primary path: ${primaryPath}`);
   return primaryPath;
 }
@@ -956,8 +1029,15 @@ ipcMain.handle('activation:activate', async (_evt, sel) => {
     const startPort = 33333;
     const port = await findOpenPort(host, startPort);
 
-    // Spawn server
-    const args = ['--model', base.gguf, '--host', host, '--port', String(port), '--chat-template', 'mistral-v1'];
+  // Spawn server
+  const args = ['--model', base.gguf, '--host', host, '--port', String(port), '--chat-template', 'mistral-v1'];
+  try {
+    const prefs = readSettings();
+    const nGpuLayers = typeof prefs.nGpuLayers === 'number' ? prefs.nGpuLayers : 0;
+    if (nGpuLayers && nGpuLayers > 0) {
+      args.push('--n-gpu-layers', String(nGpuLayers));
+    }
+  } catch {}
     if (voice?.adapter) args.push('--lora', voice.adapter);
     console.log('[ACT] spawn', bin, args.join(' '));
     const proc = spawn(bin, args, { stdio: 'pipe', windowsHide: true });

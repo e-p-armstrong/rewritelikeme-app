@@ -159,6 +159,7 @@ export interface AppSettings {
   llamaServer: LlamaServerConfig;
   offlineMode: boolean;
   allowAutoUpdate: boolean;
+  backendPreference?: 'auto' | 'cpu' | 'vulkan';
 }
 
 export interface AppError {
