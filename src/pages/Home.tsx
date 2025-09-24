@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 // removed unused background image import
-import { models } from '../services/ipcService';
+import { models, appUpdates } from '../services/ipcService';
+import type { AppUpdateInfo } from '../services/ipcService';
 
 interface RssPost {
   title: string;
@@ -28,6 +29,9 @@ const Home: React.FC = () => {
   const [featuredPreview, setFeaturedPreview] = useState<string>('');
   const [featuredPreviewLoading, setFeaturedPreviewLoading] = useState<boolean>(false);
   const [stats, setStats] = useState<{ bases: { count: number; bytes: number }; voices: { count: number; bytes: number }; totalBytes: number } | null>(null);
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
+  const [updateLoading, setUpdateLoading] = useState<boolean>(false);
+  const [showUpdateBanner, setShowUpdateBanner] = useState<boolean>(false);
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * heroOptions.length);
@@ -42,6 +46,28 @@ const Home: React.FC = () => {
         if (!cancelled) setStats(s);
       } catch {
         // ignore
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Check for app updates
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setUpdateLoading(true);
+        const updateResult = await appUpdates.checkUpdate();
+        if (!cancelled) {
+          setUpdateInfo(updateResult);
+          if (updateResult.hasUpdate) {
+            setShowUpdateBanner(true);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check for app updates:', error);
+      } finally {
+        if (!cancelled) setUpdateLoading(false);
       }
     })();
     return () => { cancelled = true; };
@@ -159,10 +185,91 @@ const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-floral-white text-black">
+      {/* App Update Banner */}
+      {showUpdateBanner && updateInfo?.hasUpdate && (
+        <div className="bg-orange text-white px-4 py-3 relative">
+          <div className="container mx-auto flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <span className="font-semibold">
+                  New version available: v{updateInfo.latestVersion}
+                </span>
+                <span className="ml-2 text-sm opacity-90">
+                  (current: v{updateInfo.currentVersion})
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <a
+                href={updateInfo.releaseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white text-orange px-4 py-1 rounded text-sm font-semibold hover:bg-opacity-90"
+              >
+                Download Update
+              </a>
+              <button
+                onClick={() => setShowUpdateBanner(false)}
+                className="text-white hover:text-gray-200"
+                aria-label="Dismiss update notification"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Hub Grid */}
       <div className="container mx-auto p-4 pt-16">
         {/* Top widgets row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {/* App Version Widget */}
+          <div className="bg-white p-6 rounded-xl shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-black">App Version</h2>
+              {updateLoading && (
+                <div className="w-4 h-4 border-2 border-orange border-t-transparent rounded-full animate-spin"></div>
+              )}
+            </div>
+            {updateInfo && (
+              <div className="space-y-2">
+                <div className="text-center">
+                  <div className="text-2xl font-bold">v{updateInfo.currentVersion}</div>
+                  <div className="text-sm text-gray-600">Current</div>
+                </div>
+                {updateInfo.hasUpdate ? (
+                  <div className="mt-3 p-2 bg-orange bg-opacity-10 rounded">
+                    <div className="text-sm text-orange font-semibold text-center">
+                      v{updateInfo.latestVersion} available
+                    </div>
+                    <a
+                      href={updateInfo.releaseUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block mt-2 text-xs text-center text-orange hover:underline"
+                    >
+                      View Release
+                    </a>
+                  </div>
+                ) : updateInfo.error ? (
+                  <div className="text-xs text-gray-500 text-center">
+                    Update check failed
+                  </div>
+                ) : (
+                  <div className="text-xs text-green-600 text-center">
+                    Up to date
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Stats widget */}
           <div className="bg-white p-6 rounded-xl shadow-lg">
             <div className="flex items-center justify-between">

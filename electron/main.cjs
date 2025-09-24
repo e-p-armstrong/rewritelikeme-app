@@ -1096,6 +1096,86 @@ ipcMain.handle('activation:state', async () => ({
 ipcMain.handle('model:checkUpdate', async () => ({ hasUpdate: false }));
 ipcMain.handle('model:update', async (_evt, repo) => ({ id: 'upd1', repo, type: 'voice', targetPath: '/tmp', status: { state: 'queued' } }));
 
+// App version checking
+const getCurrentVersion = () => {
+  try {
+    const packagePath = path.join(__dirname, '..', 'package.json');
+    const packageData = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
+    return packageData.version;
+  } catch (error) {
+    log.error('[VERSION] Failed to read current version:', error);
+    return '0.0.0';
+  }
+};
+
+const checkGitHubRelease = async () => {
+  try {
+    const response = await fetch('https://api.github.com/repos/e-p-armstrong/rewritelikeme-app/releases/latest');
+    if (!response.ok) {
+      throw new Error(`GitHub API responded with ${response.status}`);
+    }
+    const releaseData = await response.json();
+    return {
+      latestVersion: releaseData.tag_name.replace(/^v/, ''), // Remove 'v' prefix if present
+      releaseUrl: releaseData.html_url,
+      releaseNotes: releaseData.body,
+      publishedAt: releaseData.published_at,
+    };
+  } catch (error) {
+    log.error('[VERSION] Failed to check GitHub release:', error);
+    throw error;
+  }
+};
+
+const compareVersions = (current, latest) => {
+  const currentParts = current.split('.').map(Number);
+  const latestParts = latest.split('.').map(Number);
+  
+  for (let i = 0; i < Math.max(currentParts.length, latestParts.length); i++) {
+    const currentPart = currentParts[i] || 0;
+    const latestPart = latestParts[i] || 0;
+    
+    if (latestPart > currentPart) return 1; // Latest is newer
+    if (latestPart < currentPart) return -1; // Current is newer
+  }
+  return 0; // Same version
+};
+
+ipcMain.handle('app:getVersion', async () => {
+  const version = getCurrentVersion();
+  log.info('[VERSION] Current app version:', version);
+  return { version };
+});
+
+ipcMain.handle('app:checkUpdate', async () => {
+  try {
+    log.info('[VERSION] Checking for app updates...');
+    const currentVersion = getCurrentVersion();
+    const releaseInfo = await checkGitHubRelease();
+    
+    const hasUpdate = compareVersions(currentVersion, releaseInfo.latestVersion) > 0;
+    
+    const result = {
+      hasUpdate,
+      currentVersion,
+      latestVersion: releaseInfo.latestVersion,
+      releaseUrl: releaseInfo.releaseUrl,
+      releaseNotes: releaseInfo.releaseNotes,
+      publishedAt: releaseInfo.publishedAt,
+    };
+    
+    log.info('[VERSION] Update check result:', { hasUpdate, currentVersion, latestVersion: releaseInfo.latestVersion });
+    return result;
+  } catch (error) {
+    log.error('[VERSION] Update check failed:', error);
+    return {
+      hasUpdate: false,
+      currentVersion: getCurrentVersion(),
+      error: error.message,
+    };
+  }
+});
+
 ipcMain.handle('convert:start', async (evt, req) => {
   if (!activeServer?.url) throw new Error('LLAMA_UNREACHABLE: server not active');
   const text = (req?.text || '').toString();

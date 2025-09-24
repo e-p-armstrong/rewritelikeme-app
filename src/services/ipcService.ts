@@ -193,4 +193,30 @@ export const convert = {
   },
 };
 
+// App version checking and updates
+export interface AppUpdateInfo {
+  hasUpdate: boolean;
+  currentVersion: string;
+  latestVersion?: string;
+  releaseUrl?: string;
+  releaseNotes?: string;
+  publishedAt?: string;
+  error?: string;
+}
 
+export interface AppVersionInfo {
+  version: string;
+}
+
+export const appUpdates = {
+  getVersion: async (): Promise<AppVersionInfo> => {
+    const ipc = getIpc();
+    if (!ipc) throw new Error('IPC unavailable');
+    return ipc.invoke<AppVersionInfo>('app:getVersion');
+  },
+  checkUpdate: async (): Promise<AppUpdateInfo> => {
+    const ipc = getIpc();
+    if (!ipc) throw new Error('IPC unavailable');
+    return ipc.invoke<AppUpdateInfo>('app:checkUpdate');
+  },
+};
